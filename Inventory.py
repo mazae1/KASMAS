@@ -36,7 +36,10 @@ class Item:
         return datetime.datetime.now() > self.exp_date
 
     def get_exp_date(self):
-        return datetime.datetime.strftime(self.exp_date, '%Y.%m.%d')
+        if self.exp_date is not None:
+            return datetime.datetime.strftime(self.exp_date, '%Y.%m.%d')
+        else:
+            return ''
 
 def log_to_file(logfile, item_obj, event_code=0, message=''):
     now = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
