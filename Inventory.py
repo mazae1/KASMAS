@@ -1,9 +1,12 @@
 import datetime
+import uuid
 
 class Item:
-    def __init__(self, name, amount=1, exp_date=None):
+    def __init__(self, name, amount=1, barcode=None, exp_date=None):
         self.name = name #descriptive name of item
         self.amount = amount #keeps track of remaining amount/number
+        self.barcode = None #stores barcode for future reference
+        self.uid = uuid.uuid1()
 
         if isinstance(exp_date, str): #convert exp_date to datetime object if str
             self.exp_date = datetime.datetime.strptime(exp_date, '%Y-%m-%d')
@@ -32,11 +35,14 @@ class Item:
             return False
         return datetime.datetime.now() > self.exp_date
 
+    def get_exp_date(self):
+        return datetime.datetime.strftime(self.exp_date, '%Y.%m.%d')
+
 def log_to_file(logfile, item_obj, event_code=0, message=''):
     now = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
     with open(logfile, 'a') as f:
-        f.write(f'{now}\t{item_obj.name}\t{event_code}\t{message}\n')
-        print(f'{now}\t{item_obj.name}\t{event_code}\t{message}\n')
+        f.write(f'{now}\t{item_obj.uid}\t{item_obj.name}\t{event_code}\t{message}\n')
+        print(f'{now}\t{item_obj.uid}\t{item_obj.name}\t{event_code}\t{message}\n')
 
     #event_code:
         #0 = custom event
@@ -46,19 +52,26 @@ def log_to_file(logfile, item_obj, event_code=0, message=''):
         #4 = item expired
 
 class Storage:
-    def __init__(self, logfile='activity.log'):
+    def __init__(self, logfile='activity.log', storagelog='storage.log'):
         '''
         Params:
             [str] logfile: specifies logfile to store activity
         '''
         self.items = [] #list of currently stored items
         self.logfile = logfile
+        self.storagelog = storagelog
         
     def __len__(self):
         '''
         Returns: number of stored items
         '''
         return len(self.items)
+
+    def __getitem__(self, idx):
+        return self.items[idx]
+
+    def __iter__(self):
+        return iter(self.items)
 
     def add_item(self, item_obj, log=True):
         '''
@@ -70,6 +83,7 @@ class Storage:
 
         if log:
             log_to_file(self.logfile, item_obj, event_code=1, message='item added to inventory')
+            log_to_file(self.logfile, item_obj, event_code=3, message=f'amount set to {item_obj.amount}')
 
     def remove_item(self, item_obj, log=True):
         '''
@@ -89,14 +103,30 @@ class Storage:
         Params:
             [item] item_obj: item to be modified.
         '''
+        if new_amount <= 0:
+            raise ValueError('Amount has to be greater than 0')
+
         if item_obj in self.items:
             item_obj.amount = new_amount
             
             if log:
-                log_to_file(self.logfile, item_obj, event_code=3, message=f'New amount set to {new_amount}')
+                log_to_file(self.logfile, item_obj, event_code=3, message=f'amount changed to {new_amount}')
         
         else:
             raise ValueError(f'Item {item_obj.name} not found in inventory.')
+
+    def get_item_from_uid(self, uid):
+        uid = uuid.UUID(uid)
+        for item in self:
+            if item.uid == uid:
+                return item
+        raise ValueError(f'Item with uid {uid} not in storage.')
+
+    def dump_to_storagelog(self):
+        return
+
+    def restore_from_storagelog(self):
+        return
 
 if __name__ == '__main__':
     milk = Item('milk', exp_date='2025-08-07')
