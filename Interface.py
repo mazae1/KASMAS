@@ -20,10 +20,31 @@ class GUI(tk.Tk):
         font = ('Arial', 14)
         server_button = tk.Button(self, text='Refresh server', font=font)
         server_button.grid(row=1, column=2, sticky='NESW')
-        add_button = tk.Button(self, text='Add item', font=font)
+        add_button = tk.Button(self, text='Add item', font=font, command=self.add_item_manually)
         add_button.grid(row=2, column=2, sticky='NESW')
         scan_button = tk.Button(self, text='Scan', font=font)
         scan_button.grid(row=3, column=2, sticky='NESW')
+
+    def add_item_manually(self):
+        import Inventory as ivt
+        popup = tk.Toplevel(self)
+        _srg = ivt.Storage()
+        _srg.add_item(ivt.Item('milk'), log=False)
+        _srg.add_item(ivt.Item('toast'), log=False)
+        tree = self.item_treeview(popup, _srg)
+        tree.pack()
+
+    def item_treeview(self, master, storage):
+        def on_click(event):
+            uid = tree.identify_row(event.y)
+            if uid:
+                tree.selection_set(uid)
+        tree = ttk.Treeview(master, columns=('name'), show='headings')
+        self.tree.heading('name', text='Item')
+        for item in storage:
+            tree.insert('', 0, iid=item.uid, values=(item.name))
+        tree.bind('<Button-1>', on_click)
+        return tree
 
     def make_item_table(self):
         self.tree = ttk.Treeview(self, columns=('name', 'amount', 'exp. date'), show='headings')
@@ -43,14 +64,15 @@ class GUI(tk.Tk):
 
     def on_press(self, event):
         uid = self.tree.identify_row(event.y)
+        font = ('Arial', 14)
         if uid:
             self.tree.selection_set(uid)
             item = self.storage.get_item_from_uid(uid)
 
             popup = tk.Menu(self, tearoff=0)
-            popup.add_command(label='modify', command=lambda:self.modify_menu(item))
+            popup.add_command(label='modify', font=font, command=lambda:self.modify_menu(item))
             popup.add_separator()
-            popup.add_command(label='remove', command=lambda:self.remove_menu(item))
+            popup.add_command(label='remove', font=font, command=lambda:self.remove_menu(item))
             popup.tk_popup(event.x_root, event.y_root)
 
     def modify_menu(self, item):
@@ -79,10 +101,10 @@ class GUI(tk.Tk):
         amt_label = tk.Label(popup, textvariable=amt_var, font=('Arial', 28))
         amt_label.grid(row=0, column=1, rowspan=2)
 
-        add_modify_button(0.1, 0, 2, color="#EBA4A4")
-        add_modify_button(1, 0, 3, color="#FF7676")
-        add_modify_button(-0.1, 1, 2, color="#B3FFA9")
-        add_modify_button(-1, 1, 3, color="#76FF5A")
+        add_modify_button(0.1, 0, 2, color="#B3FFA9")
+        add_modify_button(1, 0, 3, color="#76FF5A")
+        add_modify_button(-0.1, 1, 2, color="#EBA4A4")
+        add_modify_button(-1, 1, 3, color="#FF7676")
 
         ok_button = tk.Button(popup, text='OK', font=('Arial', 18), command=on_ok)
         ok_button.grid(row=4, column=0, columnspan=3, sticky='EW')
