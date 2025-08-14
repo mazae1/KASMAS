@@ -5,7 +5,7 @@ import serial
 import datetime
 
 class GUI(tk.Tk):
-    def __init__(self, storage, database, size=(800, 480), fullscreen=True):
+    def __init__(self, storage, database, port, size=(800, 480), fullscreen=True):
         super().__init__()
         self.title('KASMAS')
         self.geometry(f'{size[0]}x{size[1]}')
@@ -13,7 +13,7 @@ class GUI(tk.Tk):
         self.storage = storage
         self.database = database
 
-        self.scanner = serial.Serial(port='COM3', baudrate=9600, timeout=.1)
+        self.scanner = serial.Serial(port=port, baudrate=9600, timeout=.1)
 
         header = tk.Label(self, text='K A S M A S', font=('Arial', 18, 'bold'))
         header.grid(row=0, column=0, sticky='E', padx=5)
