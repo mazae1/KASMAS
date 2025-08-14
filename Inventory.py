@@ -131,6 +131,22 @@ class Storage:
     def restore_from_storagelog(self):
         return
 
+class Database:
+    def __init__(self, file='barcode_database.csv'):
+        self.file = file
+
+    def has_barcode(self, barcode):
+        with open(self.file, 'r') as f:
+            lines = f.readlines()
+            codes = [line.split(',')[0].strip() for line in lines]
+        if barcode in codes:
+            return True
+        return False
+
+    def add_item(self, code):
+        with open(self.file, 'a') as f:
+            f.writelines([f'{code}, test\n'])
+
 if __name__ == '__main__':
     milk = Item('milk', exp_date='2025-08-07')
     print('expires in ', milk.expires_in())

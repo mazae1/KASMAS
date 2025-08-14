@@ -1,20 +1,45 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+import serial
 import datetime
 
 class GUI(tk.Tk):
-    def __init__(self, storage, size=(800, 480), fullscreen=True):
+    def __init__(self, storage, database, size=(800, 480), fullscreen=True):
         super().__init__()
         self.title('KASMAS')
         self.geometry(f'{size[0]}x{size[1]}')
         self.attributes('-fullscreen', fullscreen)
         self.storage = storage
+        self.database = database
+
+        self.scanner = serial.Serial(port='COM3', baudrate=9600, timeout=.1)
 
         header = tk.Label(self, text='K A S M A S', font=('Arial', 18, 'bold'))
         header.grid(row=0, column=0, sticky='E', padx=5)
         header_1 = tk.Label(self, text='Inventory system', font=('Arial', 14))
         header_1.grid(row=0, column=1, sticky='W', padx=5)
+
+        self.after(100, self.check_scanner())
+        
+    def check_scanner(self):
+        if self.scanner.in_waiting:
+            data = self.scanner.readline().decode(errors='ignore').strip()
+            if data:
+                self.handle_barcode(data)
+
+        self.after(100, self.check_scanner)
+
+    def handle_barcode(self, data):
+        'functiuon to call different functions depending if barcode is in register or not'
+        if self.database.has_barcode(data):
+            'ask further action'
+            print('drinn')
+
+        else:
+            'add item to inventory'
+            self.database.add_item(data)
+            print('ned drinn')
 
     def make_scan_menu(self):
         font = ('Arial', 14)
