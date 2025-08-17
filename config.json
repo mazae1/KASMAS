@@ -1,9 +1,11 @@
 {
+    "fullscreen": false,
     "serial_port": "COM3",
     "server_folder": "",
     "categories": [
         "Kühlschrank",
         "Speis",
-        "Arznei"
+        "Arznei",
+        "Sonstiges"
     ]
 }

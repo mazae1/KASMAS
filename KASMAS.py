@@ -10,7 +10,7 @@ storage = Storage()
 
 database = Database()
 
-app = GUI(config, storage, database, fullscreen=False)
+app = GUI(config, storage, database)
 
 app.activate_scanner()
 app.make_item_table()

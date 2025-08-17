@@ -6,11 +6,11 @@ import datetime
 from dateutil.relativedelta import relativedelta
 
 class GUI(tk.Tk):
-    def __init__(self, config, storage, database, size=(800, 480), fullscreen=True):
+    def __init__(self, config, storage, database, size=(800, 480)):
         super().__init__()
         self.title('KASMAS')
         self.geometry(f'{size[0]}x{size[1]}')
-        self.attributes('-fullscreen', fullscreen)
+        self.attributes('-fullscreen', config['fullscreen'])
         self.storage = storage
         self.database = database
         self.config = config
@@ -38,6 +38,7 @@ class GUI(tk.Tk):
         self.after(100, self.check_scanner)
 
     def add_item_popup(self, code):
+
         def on_ok():
             import Inventory as inv
             if no_exp_date.get():
@@ -60,6 +61,8 @@ class GUI(tk.Tk):
             return datetime.datetime.strftime(date, formatter)
 
         popup = tk.Toplevel(self)
+        popup.transient(self)
+        popup.grab_set()
 
         _, name, cat = self.database.get_item_from_barcode(code)
 
@@ -101,6 +104,9 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = tk.Toplevel(self)
+        popup.transient(self)
+        popup.grab_set()
+
         name = tk.StringVar()
 
         name_label = tk.Label(popup, text='Product name:')
@@ -171,6 +177,8 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = tk.Toplevel(self)
+        popup.transient(self)
+        popup.grab_set()
 
         add_button = tk.Button(popup, text='Add', command=on_add)
         add_button.grid(row=0, column=0)
@@ -198,8 +206,8 @@ class GUI(tk.Tk):
                 
         else:
             'add item to inventory'
+            #add item to database if not known
             self.add_to_database_popup(code)
-            #self.database.add_item(code)
             print('scanned item not in database')
 
     def make_item_table(self):
@@ -252,6 +260,9 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = tk.Toplevel(self)
+        popup.transient(self)
+        popup.grab_set()
+
         amt_var = tk.DoubleVar(value=item.amount)
         tk.Label(popup, text='amount = ', font=('Arial', 18)).grid(row=0, column=0, rowspan=2)
         amt_label = tk.Label(popup, textvariable=amt_var, font=('Arial', 28))
