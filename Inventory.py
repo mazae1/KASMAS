@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import os
 
 class Item:
     def __init__(self, name, amount=1, barcode=None, exp_date=None):
@@ -137,6 +138,8 @@ class Storage:
 class Database:
     def __init__(self, file='barcode_database.csv'):
         self.file = file
+        if not os.path.exists(file):
+            with open(self.file, 'w'): pass
 
     def has_barcode(self, barcode):
         with open(self.file, 'r') as f:
@@ -146,9 +149,19 @@ class Database:
             return True
         return False
 
-    def add_item(self, code):
+    def add_item(self, code, name, cat):
         with open(self.file, 'a') as f:
-            f.writelines([f'{code}, test\n'])
+            f.writelines([f'{code}, {name}, {cat}\n'])
+
+    def get_item_from_barcode(self, code):
+        with open(self.file, 'r') as f:
+            lines = f.readlines()
+
+        for line in lines:
+            if line.strip().split(',')[0] == code:
+                return [item.strip() for item in line.split(',')]
+        
+        raise ValueError(f'{code} not found in database')
 
 if __name__ == '__main__':
     milk = Item('milk', exp_date='2025-08-07')

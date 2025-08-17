@@ -7,13 +7,10 @@ with open('config.json') as cnfgfl:
     config = json.load(cnfgfl)
 
 storage = Storage()
-storage.add_item(Item('milk', exp_date='2025-10-05', barcode='5056561802435'))
-storage.add_item(Item('cheese', exp_date='2025-11-05'))
 
 database = Database()
 
-app = GUI(storage, database, config['serial_port'], fullscreen=False)
+app = GUI(config, storage, database, fullscreen=False)
 
 app.make_item_table()
-app.make_scan_menu()
 app.run()
