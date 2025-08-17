@@ -5,7 +5,7 @@ class Item:
     def __init__(self, name, amount=1, barcode=None, exp_date=None):
         self.name = name #descriptive name of item
         self.amount = amount #keeps track of remaining amount/number
-        self.barcode = None #stores barcode for future reference
+        self.barcode = barcode #stores barcode for future reference
         self.uid = uuid.uuid1()
 
         if isinstance(exp_date, str): #convert exp_date to datetime object if str
@@ -124,6 +124,9 @@ class Storage:
             if item.uid == uid:
                 return item
         raise ValueError(f'Item with uid {uid} not in storage.')
+
+    def get_items_from_code(self, code):
+        return [item for item in self if item.barcode == code]
 
     def dump_to_storagelog(self):
         return

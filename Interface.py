@@ -24,22 +24,31 @@ class GUI(tk.Tk):
         
     def check_scanner(self):
         if self.scanner.in_waiting:
-            data = self.scanner.readline().decode(errors='ignore').strip()
-            if data:
-                self.handle_barcode(data)
+            code = self.scanner.readline().decode(errors='ignore').strip()
+            if code:
+                self.handle_barcode(code)
 
         self.after(100, self.check_scanner)
 
-    def handle_barcode(self, data):
-        'functiuon to call different functions depending if barcode is in register or not'
-        if self.database.has_barcode(data):
-            'ask further action'
-            print('drinn')
-
+    def handle_barcode(self, code):
+        #functiuon to call different functions depending if barcode is in register or not
+        if self.database.has_barcode(code):
+            #ask further action
+            print('scanned item in database')
+            in_storage = self.storage.get_items_from_code(code)
+            if len(in_storage) >= 1:
+                #open options menu
+                print('in storage')
+                pass
+            else:
+                #jump directly to add item
+                print('not in storage')
+                pass
+                
         else:
             'add item to inventory'
-            self.database.add_item(data)
-            print('ned drinn')
+            self.database.add_item(code)
+            print('scanned item not in database')
 
     def make_scan_menu(self):
         font = ('Arial', 14)
