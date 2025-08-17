@@ -15,14 +15,19 @@ class GUI(tk.Tk):
         self.database = database
         self.config = config
 
-        self.scanner = serial.Serial(port=self.config['serial_port'], baudrate=9600, timeout=.1)
-
         header = tk.Label(self, text='K A S M A S', font=('Arial', 18, 'bold'))
         header.grid(row=0, column=0, sticky='E', padx=5)
         header_1 = tk.Label(self, text='Inventory system', font=('Arial', 14))
         header_1.grid(row=0, column=1, sticky='W', padx=5)
 
-        self.after(100, self.check_scanner())
+    def activate_scanner(self):
+        try: 
+            self.scanner = serial.Serial(port=self.config['serial_port'], baudrate=9600, timeout=.1)
+        except serial.SerialException as e:
+            print(f'An Error occured while initializing Barcode scanner: {e}. Is the COM port set correctly in config.json?')
+            return
+
+        self.after(100, self.check_scanner)
         
     def check_scanner(self):
         if self.scanner.in_waiting:

@@ -12,5 +12,6 @@ database = Database()
 
 app = GUI(config, storage, database, fullscreen=False)
 
+app.activate_scanner()
 app.make_item_table()
 app.run()
