@@ -4,6 +4,7 @@ from tkinter import messagebox
 import serial
 import datetime
 from dateutil.relativedelta import relativedelta
+from Keyboard import *
 
 class GUI(tk.Tk):
     def __init__(self, config, storage, database, size=(800, 480)):
@@ -111,6 +112,7 @@ class GUI(tk.Tk):
 
         name_label = tk.Label(popup, text='Product name:')
         name_entry = tk.Entry(popup, textvariable=name)
+        name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, name_entry))
         name_label.grid(row=0, column=0)
         name_entry.grid(row=0, column=1)
 
@@ -205,7 +207,6 @@ class GUI(tk.Tk):
                 pass
                 
         else:
-            'add item to inventory'
             #add item to database if not known
             self.add_to_database_popup(code)
             print('scanned item not in database')
