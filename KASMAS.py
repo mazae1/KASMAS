@@ -13,5 +13,7 @@ database = Database()
 app = GUI(config, storage, database)
 
 app.activate_scanner()
-app.make_item_table()
+app.show_header(row=0, column=0)
+app.make_item_table(rows=15)
+app.show_item_table(row=1, column=0, sticky='NS')
 app.run()

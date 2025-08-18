@@ -7,5 +7,8 @@
         "Speis",
         "Arznei",
         "Sonstiges"
-    ]
+    ],
+    "bold_font": ["Helvetica", 18, "bold"],
+    "header_font": ["Helvetica", 16],
+    "list_font": ["Helvetica", 15]
 }
