@@ -39,21 +39,39 @@ KASMAS (Kitchen and Storage Management System) is a smart fridge project running
     ```bash
     pip install -r requirements.txt
     ```
-3. adapt **'config.json'** to your system
+3. modify **'config.json'** to your systems requirements
 
-4. (optional) install apache2, default website path is **'var/www/html/'**
-    ```bash
-    sudo apt install apache2
-    ```
-5. (optional) install certbot
-    ```bash
-    sudo apt install certbot
-    ```
-6. (optional) forward port 80 (http) and/or port 443 (https) from your router to the Raspberry Pi
+4. (optional) set up webserver
+    -  install apache2, default website path is **'var/www/html/'**
+        ```bash
+        sudo apt install apache2
+        ```
+    -  install certbot
+        ```bash
+        sudo apt install certbot
+        ```
+    -  forward port 80 (http) and/or port 443 (https) from your router to the Raspberry Pi
 
-7. (optional) get a ddns service if your router has a dynamic id (e.g. noip)
+    -  get a ddns service if your router has a dynamic ip (e.g. noip)
 
-8. (optional) get necessary certificate for https connections
-    ```bash
-    sudo certbot --apache -d <your-domain-name>.ddns.net
-    ```
+    -  get necessary certificate for https connections
+        ```bash
+        sudo certbot --apache -d <your-domain-name>.ddns.net
+        ```
+5. (optional) set up password protection
+    -  create user account with
+        ```bash
+        sudo htpasswd -c /etc/apache2/.htpasswd username
+        ```
+    -  edit **'/etc/apache2/sites-available/000-default-le-ssl.conf'** and add
+        ```apache
+        <Directory /var/www/html>
+            AuthType Basic
+            AuthName "KASMAS"
+            AuthUserFile /etc/apache2/.htpasswd
+            Require valid-user
+        </Directory>
+        ```
+        within the <VirtualHost *:443> block.
+
+6. TADAA all done!
