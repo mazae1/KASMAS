@@ -25,7 +25,7 @@ class GUI(tk.Tk):
         master_height = master.winfo_height()
 
         x = master_x + (master_width - width) // 2
-        y = master_y + (master_height - height) // 2
+        y = master_y + (master_height - height) // 3
 
         popup = tk.Toplevel(master)
         if borderless:
@@ -135,23 +135,41 @@ class GUI(tk.Tk):
 
         popup = self.make_popup(self, width=500, height=200)
 
+        padding = 5
+
         name = tk.StringVar()
+        quantity = tk.StringVar(value=1)
 
         name_label = tk.Label(popup, text='Product name:')
         name_entry = tk.Entry(popup, textvariable=name)
-        name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, name_entry))
-        name_label.grid(row=0, column=0)
-        name_entry.grid(row=0, column=1)
+        name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, name_entry))
+        name_label.grid(row=0, column=0, padx=padding, pady=padding)
+        name_entry.grid(row=0, column=1, padx=padding, pady=padding)
 
+        quantity_label = tk.Label(popup, text='quantity:')
+        quantity_entry = tk.Entry(popup, textvariable=quantity, width=5)
+        quantity_label.grid(row=0, column=2, padx=padding, pady=padding)
+        quantity_entry.grid(row=0, column=3, padx=padding, pady=padding)
+
+        unit = ttk.Combobox(popup, values=self.config["units"], width=6)
+        unit.current(0)
+        unit.grid(row=0, column=4, padx=padding, pady=padding)
+
+        cat_label = tk.Label(popup, text='category: ')
         category = ttk.Combobox(popup, values=self.config["categories"])
         category.current(0)
-        category.grid(row=0, column=2)
+        cat_label.grid(row=1, column=0, padx=padding, pady=padding)
+        category.grid(row=1, column=1, padx=padding, pady=padding)
 
-        ok_button = tk.Button(popup, text='OK',  command=on_ok)
-        ok_button.grid(row=0, column=3)
+        ok_cancel_frame = tk.Frame(popup)
 
-        cancel_button = tk.Button(popup, text='cancel',  command=on_cancel)
-        cancel_button.grid(row=0, column=4)
+        ok_button = tk.Button(ok_cancel_frame, text='OK',  command=on_ok, width=25)
+        ok_button.grid(row=0, column=0, sticky='EW', padx=padding, pady=padding)
+
+        cancel_button = tk.Button(ok_cancel_frame, text='cancel',  command=on_cancel, width=25)
+        cancel_button.grid(row=0, column=1, sticky='EW', padx=padding, pady=padding)
+
+        ok_cancel_frame.grid(row=2, column=0, columnspan=5)
 
     def select_item_from_list(self, master, items):
 

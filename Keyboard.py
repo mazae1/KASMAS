@@ -24,11 +24,29 @@ shift_map = {
     '-': '_'
 }
 
-def onscreen_keyboard(master, entry):
+font = ('Helvetica', 15)
+
+def onscreen_keyboard(master, display_ref, entry):
+    master_x = display_ref.winfo_x()
+    master_y = display_ref.winfo_y()
+    master_width = display_ref.winfo_width()
+    master_height = display_ref.winfo_height()
+
+    width = master_width
+    height = 200
+    x = master_x
+    y = master_y + master_height - height
+
     kb = tk.Toplevel(master)
+    #kb.overrideredirect(True)
+    kb.geometry(f'{width}x{height}+{x}+{y}')
+    kb.update_idletasks()
     kb.transient(master)
+    kb.grab_set()
 
     shift_on = tk.BooleanVar(value=False)
+
+    key_frame = tk.Frame(kb)
 
     def upper(c):
         if shift_on.get():
@@ -62,9 +80,26 @@ def onscreen_keyboard(master, entry):
         for r, row in enumerate(keys):
             for c, char in enumerate(row):
                 char = upper(char)
-                key = tk.Button(kb, text=char, width=3, command=lambda ch=char: insert_char(ch))
+                key = tk.Button(key_frame, text=char, width=3, command=lambda ch=char: insert_char(ch), font=font)
                 key.grid(row=r, column=c, sticky='NESW')
 
+    def delete_char():
+        pos = entry.index("insert")
+        if pos > 0:
+            entry.delete(pos-1)
+
     update_keys()
-    shift_button = tk.Button(kb, text="Shift", command=toggle_shift)
+
+    shift_button = tk.Button(key_frame, text="Shift", command=toggle_shift, font=font)
     shift_button.grid(row=4, column=0, columnspan=3, sticky='EW')
+
+    space_bar = tk.Button(key_frame, text=' ', command=lambda: insert_char(' '), font=font)
+    space_bar.grid(row=4, column=3, columnspan=5, sticky='EW')
+
+    backspace = tk.Button(key_frame, text='<--', command=delete_char, font=font)
+    backspace.grid(row=4, column=8, columnspan=2, sticky='EW')
+
+    close_btn = tk.Button(key_frame, text='close', command=kb.destroy, font=font)
+    close_btn.grid(row=3, column=10, rowspan=2, sticky="NESW")
+
+    key_frame.pack(expand=True)
