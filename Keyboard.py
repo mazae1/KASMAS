@@ -102,8 +102,10 @@ def onscreen_keyboard(master, display_ref, entry):
     key_frame.pack(expand=True)
 
     def click_outside(event):
-        if event.widget not in (entry, kb) and not str(event.widget).startswith(str(kb)):
-            kb.destroy()
-            master.unbind('<Button-1>', binding)
+        if kb is not None and str(event.widget).startswith(str(kb)):
+            return
 
-    binding = master.bind('<Button-1>', click_outside, add='+')
+        kb.destroy()
+        master.unbind_all('<Button-1>')
+
+    binding = master.bind_all('<Button-1>', click_outside, add='+')
