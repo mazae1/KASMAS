@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Display Names from JSON</title>
+</head>
+<body>
+<h1>Names List</h1>
+<ul id="names-list"></ul>
+
+<script>
+  // Fetch the JSON file
+  fetch('storage.json')
+    .then(response => response.json())
+    .then(data => {
+      const list = document.getElementById('names-list');
+
+      // Assume data is an array of dictionaries
+      data.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.name; // Display the 'name' property
+        list.appendChild(li);
+      });
+    })
+    .catch(error => console.error('Error loading JSON:', error));
+</script>
+</body>
+</html>

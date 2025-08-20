@@ -1,7 +1,7 @@
 {
     "fullscreen": false,
     "serial_port": "COM3",
-    "server_folder": "",
+    "server_folder": "website_dest",
     "categories": [
         "Kühlschrank",
         "Speis",
