@@ -24,8 +24,6 @@ class GUI(tk.Tk):
         self.style.configure("Treeview", font=self.config['list_font'])
 
         self.style.configure("TCombobox", arrowsize=30)
-        #self.style.configure("TCombobox", font=self.config['header_font'])
-        #self.option_add('*TCombobox*Listbox*Font', self.config['header_font'])
 
     def load_from_storagelog(self):
         try:
@@ -46,7 +44,7 @@ class GUI(tk.Tk):
         master_height = master.winfo_height()
 
         x = master_x + (master_width - width) // 2
-        y = master_y + (master_height - height) // 3
+        y = master_y + (master_height - height) // 4
 
         popup = tk.Toplevel(master)
         if borderless:
@@ -158,6 +156,7 @@ class GUI(tk.Tk):
             item_dict = {
                 'barcode': code,
                 'name': name.get(),
+                'brand': brand.get(),
                 'quantity': quantity.get(),
                 'unit': unit.get(),
                 'category': category.get(),
@@ -179,35 +178,48 @@ class GUI(tk.Tk):
         padding = 5
 
         name = tk.StringVar()
+        brand = tk.StringVar()
         type = tk.StringVar()
         quantity = tk.StringVar(value=1)
 
-        name_label = tk.Label(frame, text='Product name:')
+        name_label = tk.Label(frame, text='Prod. name:')
         name_entry = tk.Entry(frame, textvariable=name)
         name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, name_entry))
         name_label.grid(row=0, column=0, padx=padding, pady=padding)
         name_entry.grid(row=0, column=1, padx=padding, pady=padding)
 
-        quantity_label = tk.Label(frame, text='quantity:')
-        quantity_entry = tk.Entry(frame, textvariable=quantity, width=5)
-        quantity_label.grid(row=0, column=2, padx=padding, pady=padding)
-        quantity_entry.grid(row=0, column=3, padx=padding, pady=padding)
+        brand_label = tk.Label(frame, text='brand:')
+        brand_entry = tk.Entry(frame, textvariable=brand)
+        brand_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, brand_entry))
+        brand_label.grid(row=1, column=0, padx=padding, pady=padding)
+        brand_entry.grid(row=1, column=1, padx=padding, pady=padding)
 
-        unit = ttk.Combobox(frame, values=self.config["units"], width=6, style='TCombobox')
-        unit.current(0)
-        unit.grid(row=0, column=4, padx=padding, pady=padding)
-
-        type_label = tk.Label(frame, text='Product type:')
+        type_label = tk.Label(frame, text='Prod. type:')
         type_entry = tk.Entry(frame, textvariable=type)
         type_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, type_entry))
-        type_label.grid(row=1, column=0, padx=padding, pady=padding)
-        type_entry.grid(row=1, column=1, padx=padding, pady=padding)
+        type_label.grid(row=2, column=0, padx=padding, pady=padding)
+        type_entry.grid(row=2, column=1, padx=padding, pady=padding)
+
+        qty_frame = tk.Frame(frame)
+
+        quantity_label = tk.Label(qty_frame, text='quantity:')
+        quantity_entry = tk.Entry(qty_frame, textvariable=quantity, width=5)
+        quantity_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, quantity_entry))
+        quantity_label.grid(row=0, column=0, padx=padding, pady=padding)
+        quantity_entry.grid(row=0, column=1, padx=padding, pady=padding)
+
+        unit = ttk.Combobox(qty_frame, values=self.config["units"], width=6, style='TCombobox')
+        unit.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, unit))
+        unit.current(0)
+        unit.grid(row=0, column=3, padx=padding, pady=padding)
+
+        qty_frame.grid(row=3, column=0, columnspan=2)
 
         cat_label = tk.Label(frame, text='category: ')
         category = ttk.Combobox(frame, values=self.config["categories"])
         category.current(0)
-        cat_label.grid(row=2, column=0, padx=padding, pady=padding)
-        category.grid(row=2, column=1, padx=padding, pady=padding)
+        cat_label.grid(row=4, column=0, padx=padding, pady=padding)
+        category.grid(row=4, column=1, padx=padding, pady=padding)
 
         ok_cancel_frame = tk.Frame(frame)
 
@@ -217,7 +229,7 @@ class GUI(tk.Tk):
         cancel_button = tk.Button(ok_cancel_frame, text='cancel',  command=on_cancel, width=25)
         cancel_button.grid(row=0, column=1, sticky='EW', padx=padding, pady=padding)
 
-        ok_cancel_frame.grid(row=3, column=0, columnspan=5)
+        ok_cancel_frame.grid(row=5, column=0, columnspan=5)
         frame.pack(expand=True)
 
     def select_item_from_list(self, master, items):
@@ -272,14 +284,17 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = self.make_popup(self, width=200, height=300)
+        frame = tk.Frame(popup)
         padding = 5
 
-        add_button = tk.Button(popup, text='Add', command=on_add)
+        add_button = tk.Button(frame, text='Add', command=on_add)
         add_button.grid(row=0, column=0, sticky='NESW', padx=padding, pady=padding)
-        remove_button = tk.Button(popup, text='remove', command=on_remove)
+        remove_button = tk.Button(frame, text='remove', command=on_remove)
         remove_button.grid(row=1, column=0, sticky='NESW', padx=padding, pady=padding)
-        modify_button = tk.Button(popup, text='modify', command=on_modify)
+        modify_button = tk.Button(frame, text='modify', command=on_modify)
         modify_button.grid(row=2, column=0, sticky='NESW', padx=padding, pady=padding)
+
+        frame.pack(expand=True)
 
     def handle_barcode(self, code):
         #functiuon to call different functions depending if barcode is in register or not
@@ -304,15 +319,22 @@ class GUI(tk.Tk):
             print('scanned item not in database')
 
     def make_item_table(self, rows):
-        self.tree = ttk.Treeview(self, columns=('name', 'quantity', 'unit', 'exp. date'), show='headings', height=rows)
+        self.tree = ttk.Treeview(self, columns=('name', 'quantity', 'unit', 'exp. date', 'brand'), show='headings', height=rows)
 
         self.tree.heading('name', text='Item', command=self.namesort)
-        self.tree.heading('quantity', text='amount', command=self.amountsort)
+        self.tree.heading('quantity', text='amnt', command=self.amountsort)
         self.tree.heading('unit', text='unit', command=self.namesort)
-        self.tree.heading('exp. date', text='expiration date', command=self.datesort)
+        self.tree.heading('exp. date', text='exp. date', command=self.datesort)
+        self.tree.heading('brand', text='brand', command=self.namesort)
+
+        self.tree.column('name', width=200)
+        self.tree.column('quantity', width=70)
+        self.tree.column('unit', width=60)
+        self.tree.column('exp. date', width=150)
+        self.tree.column('brand', width=150)
 
         for item in self.storage:
-            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit, item.get_exp_date()))
+            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit if item.unit else '', item.get_exp_date()))
 
         self.tree.bind('<Button-1>', self.on_press)
 

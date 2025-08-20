@@ -5,7 +5,7 @@ import json
 import ast
 
 class Item:
-    def __init__(self, name, quantity=1, unit=None, added=None, barcode=None, exp_date=None, type=None, category=None, uid=None):
+    def __init__(self, name, quantity=1, unit=None, added=None, barcode=None, exp_date=None, type=None, category=None, uid=None, brand=None):
 
         if uid is None: #create random uid if uid not specified
             uid = uuid.uuid1()
@@ -26,6 +26,7 @@ class Item:
         self.type = type
         self.category = category
         self.uid = uid
+        self.brand = brand
         self.exp_date = exp_date
 
     def expires_in(self):

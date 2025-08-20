@@ -38,11 +38,8 @@ def onscreen_keyboard(master, display_ref, entry):
     y = master_y + master_height - height
 
     kb = tk.Toplevel(master)
-    #kb.overrideredirect(True)
     kb.geometry(f'{width}x{height}+{x}+{y}')
     kb.update_idletasks()
-    kb.transient(master)
-    kb.grab_set()
 
     shift_on = tk.BooleanVar(value=False)
 
@@ -84,9 +81,12 @@ def onscreen_keyboard(master, display_ref, entry):
                 key.grid(row=r, column=c, sticky='NESW')
 
     def delete_char():
-        pos = entry.index("insert")
-        if pos > 0:
-            entry.delete(pos-1)
+        inside = entry.get()
+        if inside:
+            entry.delete(len(inside)-1, tk.END)
+        #pos = entry.index("insert")
+        #if pos > 0:
+            #entry.delete(pos-1)
 
     update_keys()
 
@@ -103,3 +103,10 @@ def onscreen_keyboard(master, display_ref, entry):
     close_btn.grid(row=3, column=10, rowspan=2, sticky="NESW")
 
     key_frame.pack(expand=True)
+
+    def click_outside(event):
+        if event.widget not in (entry, kb):
+            kb.destroy()
+            master.unbind('<Button-1>', binding)
+
+    binding = master.bind('<Button-1>', click_outside, add='+')
