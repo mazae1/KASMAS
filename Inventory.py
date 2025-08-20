@@ -2,9 +2,10 @@ import datetime
 import uuid
 import os
 import json
+import ast
 
 class Item:
-    def __init__(self, name, amount=1, unit=None, added=None, barcode=None, exp_date=None, type=None, category=None, uid=None):
+    def __init__(self, name, quantity=1, unit=None, added=None, barcode=None, exp_date=None, type=None, category=None, uid=None):
 
         if uid is None: #create random uid if uid not specified
             uid = uuid.uuid1()
@@ -18,7 +19,7 @@ class Item:
             added = datetime.datetime.strptime(added, '%Y-%m-%d')
 
         self.name = name #descriptive name of item
-        self.amount = amount #keeps track of remaining amount/number
+        self.quantity = quantity #keeps track of remaining amount/number
         self.unit = unit
         self.added = added
         self.barcode = barcode #stores barcode for future reference
@@ -113,7 +114,7 @@ class Storage:
 
         if log:
             log_to_file(self.logfile, item_obj, event_code=1, message='item added to inventory')
-            log_to_file(self.logfile, item_obj, event_code=3, message=f'amount set to {item_obj.amount}')
+            log_to_file(self.logfile, item_obj, event_code=3, message=f'quantity set to {item_obj.quantity}')
 
     def remove_item(self, item_obj, log=True):
         '''
@@ -138,11 +139,11 @@ class Storage:
             raise ValueError('Amount has to be greater than 0')
 
         if item_obj in self.items:
-            item_obj.amount = new_amount
+            item_obj.quantity = new_amount
             self.dump_to_storagelog()
             
             if log:
-                log_to_file(self.logfile, item_obj, event_code=3, message=f'amount changed to {new_amount}')
+                log_to_file(self.logfile, item_obj, event_code=3, message=f'quantity changed to {new_amount}')
         
         else:
             raise ValueError(f'Item {item_obj.name} not found in inventory.')
@@ -181,22 +182,23 @@ class Database:
     def has_barcode(self, barcode):
         with open(self.file, 'r') as f:
             lines = f.readlines()
-            codes = [line.split(',')[0].strip() for line in lines]
+            codes = [ast.literal_eval(line.strip())['barcode'] for line in lines]
         if barcode in codes:
             return True
         return False
 
-    def add_item(self, code, name, cat):
+    def add_item(self, dict):
         with open(self.file, 'a') as f:
-            f.writelines([f'{code}, {name}, {cat}\n'])
+            f.writelines(str(dict) + '\n')
 
     def get_item_from_barcode(self, code):
         with open(self.file, 'r') as f:
             lines = f.readlines()
 
         for line in lines:
-            if line.strip().split(',')[0] == code:
-                return [item.strip() for item in line.split(',')]
+            item_dict = ast.literal_eval(line.strip())
+            if item_dict['barcode'] == code:
+                return item_dict
         
         raise ValueError(f'{code} not found in database')
 

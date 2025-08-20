@@ -32,7 +32,7 @@ class GUI(tk.Tk):
             try:
                 self.refresh_table()
             except AttributeError:
-                print('tree not initialized')
+                print('tree update not successful, tree not initialized')
         except FileNotFoundError as e:
             print(f'{self.storage.storagelog} could not be found: {e}')
 
@@ -86,11 +86,16 @@ class GUI(tk.Tk):
 
         def on_ok():
             import Inventory as inv
+            #if no_exp_date.get():
+                #item = inv.Item(name, 1, barcode=code)
+            #else:
+                #item = inv.Item(name, 1, exp_date=date, barcode=code)
             if no_exp_date.get():
-                item = inv.Item(name, 1, barcode=code)
+                item_dict['exp_date'] = None
             else:
-                item = inv.Item(name, 1, exp_date=date, barcode=code)
-            self.storage.add_item(item)
+                item_dict['exp_date'] = date
+            
+            self.storage.add_item(inv.Item.from_dict(item_dict))
             popup.destroy()
             self.refresh_table()
 
@@ -108,7 +113,7 @@ class GUI(tk.Tk):
         def get_dateval(date, formatter):
             return datetime.datetime.strftime(date, formatter)
 
-        _, name, cat = self.database.get_item_from_barcode(code)
+        item_dict = self.database.get_item_from_barcode(code)
 
         popup = self.make_popup(self, width=200, height=200)
 
@@ -144,7 +149,15 @@ class GUI(tk.Tk):
     def add_to_database_popup(self, code):
 
         def on_ok():
-            self.database.add_item(code, name.get(), category.get())
+            item_dict = {
+                'barcode': code,
+                'name': name.get(),
+                'quantity': quantity.get(),
+                'unit': unit.get(),
+                'category': category.get(),
+                'type': type.get()
+            }
+            self.database.add_item(item_dict)
             print(f'{name.get()}: {code} added to database.')
             popup.destroy()
             answer = messagebox.askyesno(title='a', message='Add item to inventory?')
@@ -283,14 +296,15 @@ class GUI(tk.Tk):
             print('scanned item not in database')
 
     def make_item_table(self, rows):
-        self.tree = ttk.Treeview(self, columns=('name', 'amount', 'exp. date'), show='headings', height=rows)
+        self.tree = ttk.Treeview(self, columns=('name', 'quantity', 'unit', 'exp. date'), show='headings', height=rows)
 
         self.tree.heading('name', text='Item', command=self.namesort)
-        self.tree.heading('amount', text='amount', command=self.amountsort)
+        self.tree.heading('quantity', text='amount', command=self.amountsort)
+        self.tree.heading('unit', text='unit', command=self.namesort)
         self.tree.heading('exp. date', text='expiration date', command=self.datesort)
 
         for item in self.storage:
-            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.amount, item.get_exp_date()))
+            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit, item.get_exp_date()))
 
         self.tree.bind('<Button-1>', self.on_press)
 
@@ -300,7 +314,7 @@ class GUI(tk.Tk):
     def refresh_table(self):
         self.tree.delete(*self.tree.get_children())
         for item in self.storage:
-            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.amount, item.get_exp_date()))
+            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit, item.get_exp_date()))
 
     def on_press(self, event):
         uid = self.tree.identify_row(event.y)
@@ -338,7 +352,7 @@ class GUI(tk.Tk):
         popup.transient(self)
         popup.grab_set()
 
-        amt_var = tk.DoubleVar(value=item.amount)
+        amt_var = tk.DoubleVar(value=item.quantity)
         tk.Label(popup, text='amount = ', font=('Arial', 18)).grid(row=0, column=0, rowspan=2)
         amt_label = tk.Label(popup, textvariable=amt_var, font=('Arial', 28))
         amt_label.grid(row=0, column=1, rowspan=2)
@@ -383,7 +397,7 @@ class GUI(tk.Tk):
             self.tree.move(iid, '', index)
 
     def amountsort(self):
-        items = [(self.tree.set(iid, 'amount'), iid) for iid in self.tree.get_children('')]
+        items = [(self.tree.set(iid, 'quantity'), iid) for iid in self.tree.get_children('')]
         items.sort(key=lambda t: -float(t[0]))
 
         for index, (_, iid) in enumerate(items):
