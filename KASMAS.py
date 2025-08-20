@@ -11,6 +11,7 @@ storage = Storage()
 database = Database()
 
 app = GUI(config, storage, database)
+app.load_from_storagelog()
 
 app.activate_scanner()
 app.show_header(row=0, column=0)
