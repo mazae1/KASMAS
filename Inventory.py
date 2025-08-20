@@ -1,18 +1,31 @@
 import datetime
 import uuid
 import os
+import json
 
 class Item:
-    def __init__(self, name, amount=1, barcode=None, exp_date=None):
+    def __init__(self, name, amount=1, unit=None, added=None, barcode=None, exp_date=None, type=None, category=None, uid=None):
+
+        if uid is None: #create random uid if uid not specified
+            uid = uuid.uuid1()
+        elif isinstance(uid, str): #convert uid to uuid object if string
+            uid = uuid.UUID(uid)
+        if isinstance(exp_date, str): #convert exp_date to datetime object if str
+            exp_date = datetime.datetime.strptime(exp_date, '%Y-%m-%d')
+        if added is None: #set default value for added to now
+            added = datetime.datetime.now()
+        if isinstance(added, str): #convert added to datetime object if str
+            added = datetime.datetime.strptime(added, '%Y-%m-%d')
+
         self.name = name #descriptive name of item
         self.amount = amount #keeps track of remaining amount/number
+        self.unit = unit
+        self.added = added
         self.barcode = barcode #stores barcode for future reference
-        self.uid = uuid.uuid1()
-
-        if isinstance(exp_date, str): #convert exp_date to datetime object if str
-            self.exp_date = datetime.datetime.strptime(exp_date, '%Y-%m-%d')
-        else: #keep as is if exp_date is datetime obj or None
-            self.exp_date = exp_date
+        self.type = type
+        self.category = category
+        self.uid = uid
+        self.exp_date = exp_date
 
     def expires_in(self):
         """
@@ -42,6 +55,17 @@ class Item:
         else:
             return ''
 
+    def to_dict(self):
+        out = self.__dict__.copy()
+        out['exp_date'] = datetime.datetime.strftime(self.exp_date, format='%Y-%m-%d') if self.exp_date else None
+        out['added'] = datetime.datetime.strftime(self.added, format='%Y-%m-%d')
+        out['uid'] = str(self.uid)
+        return out
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**d)
+
 def log_to_file(logfile, item_obj, event_code=0, message=''):
     now = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
     with open(logfile, 'a') as f:
@@ -55,8 +79,9 @@ def log_to_file(logfile, item_obj, event_code=0, message=''):
         #3 = item modified
         #4 = item expired
 
+
 class Storage:
-    def __init__(self, logfile='activity.log', storagelog='storage.log'):
+    def __init__(self, logfile='activity.log', storagelog='storage.json'):
         '''
         Params:
             [str] logfile: specifies logfile to store activity
@@ -84,6 +109,7 @@ class Storage:
             [bool] log: if True logs activity to file
         '''
         self.items.append(item_obj)
+        self.dump_to_storagelog()
 
         if log:
             log_to_file(self.logfile, item_obj, event_code=1, message='item added to inventory')
@@ -96,6 +122,7 @@ class Storage:
         '''
         if item_obj in self.items:
             self.items.remove(item_obj)
+            self.dump_to_storagelog()
 
             if log:
                 log_to_file(self.logfile, item_obj, event_code=2, message='item removed from inventory')
@@ -112,6 +139,7 @@ class Storage:
 
         if item_obj in self.items:
             item_obj.amount = new_amount
+            self.dump_to_storagelog()
             
             if log:
                 log_to_file(self.logfile, item_obj, event_code=3, message=f'amount changed to {new_amount}')
@@ -130,9 +158,17 @@ class Storage:
         return [item for item in self if item.barcode == code]
 
     def dump_to_storagelog(self):
-        return
+        storage_data = []
+        for item in self:
+            storage_data.append(item.to_dict())
+        with open(self.storagelog, 'w') as f:
+            json.dump(storage_data, f, indent=2)
 
     def restore_from_storagelog(self):
+        with open(self.storagelog, 'r') as f:
+            data = json.load(f)
+        items = [Item.from_dict(d) for d in data]
+        self.items=items
         return
 
 class Database:
@@ -164,10 +200,10 @@ class Database:
         raise ValueError(f'{code} not found in database')
 
 if __name__ == '__main__':
+    storage = Storage()
     milk = Item('milk', exp_date='2025-08-07')
-    print('expires in ', milk.expires_in())
-    print(milk.is_expired())
-    fridge = Storage()
-    fridge.add_item(milk)
-    fridge.modify_item(milk, .5)
-    fridge.remove_item(milk)
+    print(type(milk.exp_date))
+    print(milk.get_exp_date())
+    storage.add_item(milk)
+    print(type(storage[0].exp_date))
+    print(storage[0].get_exp_date())

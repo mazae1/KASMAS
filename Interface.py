@@ -17,12 +17,24 @@ class GUI(tk.Tk):
         self.config = config
         self.style = ttk.Style()
 
+        self.style.theme_use(self.config['style'])
         self.option_add("*Font", self.config['standard_font'])
         self.style.configure("Treeview.Heading", font=self.config['standard_font'])
         self.style.configure("Treeview", font=self.config['list_font'])
 
+        self.style.configure("TCombobox", arrowsize=30)
         #self.style.configure("TCombobox", font=self.config['header_font'])
         #self.option_add('*TCombobox*Listbox*Font', self.config['header_font'])
+
+    def load_from_storagelog(self):
+        try:
+            self.storage.restore_from_storagelog()
+            try:
+                self.refresh_table()
+            except AttributeError:
+                print('tree not initialized')
+        except FileNotFoundError as e:
+            print(f'{self.storage.storagelog} could not be found: {e}')
 
 
     def make_popup(self, master, width, height, borderless=False):
@@ -57,6 +69,7 @@ class GUI(tk.Tk):
             self.scanner = serial.Serial(port=self.config['serial_port'], baudrate=9600, timeout=.1)
         except serial.SerialException as e:
             print(f'An Error occured while initializing Barcode scanner: {e}. Is the COM port set correctly in config.json?')
+            self.scanner = None
             return
 
         self.after(100, self.check_scanner)
@@ -141,11 +154,12 @@ class GUI(tk.Tk):
         def on_cancel():
             popup.destroy()
 
-        popup = self.make_popup(self, width=700, height=200)
+        popup = self.make_popup(self, width=800, height=200)
 
         padding = 5
 
         name = tk.StringVar()
+        type = tk.StringVar()
         quantity = tk.StringVar(value=1)
 
         name_label = tk.Label(popup, text='Product name:')
@@ -163,11 +177,17 @@ class GUI(tk.Tk):
         unit.current(0)
         unit.grid(row=0, column=4, padx=padding, pady=padding)
 
+        type_label = tk.Label(popup, text='Product type:')
+        type_entry = tk.Entry(popup, textvariable=type)
+        type_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, type_entry))
+        type_label.grid(row=1, column=0, padx=padding, pady=padding)
+        type_entry.grid(row=1, column=1, padx=padding, pady=padding)
+
         cat_label = tk.Label(popup, text='category: ')
         category = ttk.Combobox(popup, values=self.config["categories"])
         category.current(0)
-        cat_label.grid(row=1, column=0, padx=padding, pady=padding)
-        category.grid(row=1, column=1, padx=padding, pady=padding)
+        cat_label.grid(row=2, column=0, padx=padding, pady=padding)
+        category.grid(row=2, column=1, padx=padding, pady=padding)
 
         ok_cancel_frame = tk.Frame(popup)
 
@@ -177,7 +197,7 @@ class GUI(tk.Tk):
         cancel_button = tk.Button(ok_cancel_frame, text='cancel',  command=on_cancel, width=25)
         cancel_button.grid(row=0, column=1, sticky='EW', padx=padding, pady=padding)
 
-        ok_cancel_frame.grid(row=2, column=0, columnspan=5)
+        ok_cancel_frame.grid(row=3, column=0, columnspan=5)
 
     def select_item_from_list(self, master, items):
 
@@ -284,15 +304,14 @@ class GUI(tk.Tk):
 
     def on_press(self, event):
         uid = self.tree.identify_row(event.y)
-        font = ('Arial', 14)
         if uid:
             self.tree.selection_set(uid)
             item = self.storage.get_item_from_uid(uid)
 
             popup = tk.Menu(self, tearoff=0)
-            popup.add_command(label='modify', font=font, command=lambda:self.modify_menu(item))
+            popup.add_command(label='modify', command=lambda:self.modify_menu(item))
             popup.add_separator()
-            popup.add_command(label='remove', font=font, command=lambda:self.remove_menu(item))
+            popup.add_command(label='remove', command=lambda:self.remove_menu(item))
             popup.tk_popup(event.x_root, event.y_root)
 
     def modify_menu(self, item):
