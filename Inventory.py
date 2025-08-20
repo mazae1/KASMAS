@@ -167,10 +167,13 @@ class Storage:
         os.replace(temp_file, self.storagelog)
 
     def restore_from_storagelog(self):
-        with open(self.storagelog, 'r') as f:
-            data = json.load(f)
-        items = [Item.from_dict(d) for d in data]
-        self.items=items
+        try:
+            with open(self.storagelog, 'r') as f:
+                data = json.load(f)
+            items = [Item.from_dict(d) for d in data]
+            self.items=items
+        except:
+            pass
         return
 
 class Database:
