@@ -13,4 +13,7 @@ server_dest = config['server_folder']
 
 def update_website():
     shutil.copy(index_file, os.path.join(server_dest, 'index.html'))
-    shutil.copy(data_file, os.path.join(server_dest, 'storage.json'))
+    try:
+        shutil.copy(data_file, os.path.join(server_dest, 'storage.json'))
+    except:
+        pass
