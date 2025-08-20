@@ -86,10 +86,7 @@ class GUI(tk.Tk):
 
         def on_ok():
             import Inventory as inv
-            #if no_exp_date.get():
-                #item = inv.Item(name, 1, barcode=code)
-            #else:
-                #item = inv.Item(name, 1, exp_date=date, barcode=code)
+
             if no_exp_date.get():
                 item_dict['exp_date'] = None
             else:
@@ -115,10 +112,11 @@ class GUI(tk.Tk):
 
         item_dict = self.database.get_item_from_barcode(code)
 
-        popup = self.make_popup(self, width=200, height=200)
+        popup = self.make_popup(self, width=250, height=250)
+        frame = tk.Frame(popup)
 
         no_exp_date = tk.BooleanVar()
-        no_date_checkbox = tk.Checkbutton(popup, text='no expiration date', variable=no_exp_date)
+        no_date_checkbox = tk.Checkbutton(frame, text='no expiration date', variable=no_exp_date)
         no_date_checkbox.grid(row=0, column=0, columnspan=5)
 
         date = datetime.datetime.now()
@@ -127,24 +125,26 @@ class GUI(tk.Tk):
         years = tk.StringVar(value=get_dateval(date, '%Y'))
 
         def add_date_modifier(type, var, column):
-            increment_button = tk.Button(popup, text="▲", command=lambda: update_date(relativedelta(**{type: +1})))
+            increment_button = tk.Button(frame, text="▲", command=lambda: update_date(relativedelta(**{type: +1})))
             increment_button.grid(row=1, column=column, sticky="EWNS")
-            label = tk.Label(popup, textvariable=var, font=self.config['bold_font'])
+            label = tk.Label(frame, textvariable=var, font=self.config['bold_font'])
             label.grid(row=2, column=column)
-            decrement_button = tk.Button(popup, text="▼", command=lambda: update_date(relativedelta(**{type: -1})))
+            decrement_button = tk.Button(frame, text="▼", command=lambda: update_date(relativedelta(**{type: -1})))
             decrement_button.grid(row=3, column=column, sticky="EWNS")
             if type != "years":
-                dot = tk.Label(popup, text=".", font=self.config['bold_font'])
+                dot = tk.Label(frame, text=".", font=self.config['bold_font'])
                 dot.grid(row=2, column=column+1)
 
         add_date_modifier("days", days, 0)
         add_date_modifier("months", months, 2)
         add_date_modifier("years", years, 4)
 
-        ok_button = tk.Button(popup, text='OK', command=on_ok,)
+        ok_button = tk.Button(frame, text='OK', command=on_ok,)
         ok_button.grid(row=4, column=0, columnspan=3, pady=5, padx=5, sticky='NESW')
-        cancel_button = tk.Button(popup, text='cancel', command=on_cancel)
+        cancel_button = tk.Button(frame, text='cancel', command=on_cancel)
         cancel_button.grid(row=4, column=3, columnspan=2, pady=5, padx=5, sticky='NESW')
+
+        frame.pack(expand=True)
 
     def add_to_database_popup(self, code):
 
@@ -168,6 +168,7 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = self.make_popup(self, width=800, height=200)
+        frame = tk.Frame(popup)
 
         padding = 5
 
@@ -175,34 +176,34 @@ class GUI(tk.Tk):
         type = tk.StringVar()
         quantity = tk.StringVar(value=1)
 
-        name_label = tk.Label(popup, text='Product name:')
-        name_entry = tk.Entry(popup, textvariable=name)
+        name_label = tk.Label(frame, text='Product name:')
+        name_entry = tk.Entry(frame, textvariable=name)
         name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, name_entry))
         name_label.grid(row=0, column=0, padx=padding, pady=padding)
         name_entry.grid(row=0, column=1, padx=padding, pady=padding)
 
-        quantity_label = tk.Label(popup, text='quantity:')
-        quantity_entry = tk.Entry(popup, textvariable=quantity, width=5)
+        quantity_label = tk.Label(frame, text='quantity:')
+        quantity_entry = tk.Entry(frame, textvariable=quantity, width=5)
         quantity_label.grid(row=0, column=2, padx=padding, pady=padding)
         quantity_entry.grid(row=0, column=3, padx=padding, pady=padding)
 
-        unit = ttk.Combobox(popup, values=self.config["units"], width=6, style='TCombobox')
+        unit = ttk.Combobox(frame, values=self.config["units"], width=6, style='TCombobox')
         unit.current(0)
         unit.grid(row=0, column=4, padx=padding, pady=padding)
 
-        type_label = tk.Label(popup, text='Product type:')
-        type_entry = tk.Entry(popup, textvariable=type)
+        type_label = tk.Label(frame, text='Product type:')
+        type_entry = tk.Entry(frame, textvariable=type)
         type_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, type_entry))
         type_label.grid(row=1, column=0, padx=padding, pady=padding)
         type_entry.grid(row=1, column=1, padx=padding, pady=padding)
 
-        cat_label = tk.Label(popup, text='category: ')
-        category = ttk.Combobox(popup, values=self.config["categories"])
+        cat_label = tk.Label(frame, text='category: ')
+        category = ttk.Combobox(frame, values=self.config["categories"])
         category.current(0)
         cat_label.grid(row=2, column=0, padx=padding, pady=padding)
         category.grid(row=2, column=1, padx=padding, pady=padding)
 
-        ok_cancel_frame = tk.Frame(popup)
+        ok_cancel_frame = tk.Frame(frame)
 
         ok_button = tk.Button(ok_cancel_frame, text='OK',  command=on_ok, width=25)
         ok_button.grid(row=0, column=0, sticky='EW', padx=padding, pady=padding)
@@ -211,6 +212,7 @@ class GUI(tk.Tk):
         cancel_button.grid(row=0, column=1, sticky='EW', padx=padding, pady=padding)
 
         ok_cancel_frame.grid(row=3, column=0, columnspan=5)
+        frame.pack(expand=True)
 
     def select_item_from_list(self, master, items):
 
