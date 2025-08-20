@@ -158,11 +158,12 @@ class Storage:
         return [item for item in self if item.barcode == code]
 
     def dump_to_storagelog(self):
-        storage_data = []
-        for item in self:
-            storage_data.append(item.to_dict())
-        with open(self.storagelog, 'w') as f:
+        storage_data = [item.to_dict() for item in self]
+        temp_file = self.storagelog + '.tmp'
+        with open(temp_file, 'w') as f:
             json.dump(storage_data, f, indent=2)
+
+        os.replace(temp_file, self.storagelog)
 
     def restore_from_storagelog(self):
         with open(self.storagelog, 'r') as f:
