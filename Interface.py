@@ -5,6 +5,7 @@ import serial
 import datetime
 from dateutil.relativedelta import relativedelta
 from Keyboard import *
+import website_handler as wh
 
 class GUI(tk.Tk):
     def __init__(self, config, storage, database, size=(800, 480)):
@@ -73,6 +74,11 @@ class GUI(tk.Tk):
             return
 
         self.after(100, self.check_scanner)
+
+    def make_website(self):
+        wh.update_website()
+
+        self.after(5000, self.make_website)
         
     def check_scanner(self):
         if self.scanner.in_waiting:

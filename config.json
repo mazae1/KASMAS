@@ -1,7 +1,7 @@
 {
-    "fullscreen": false,
-    "serial_port": "COM3",
-    "server_folder": "website_dest",
+    "fullscreen": true,
+    "serial_port": "/dev/ttyUSB0",
+    "server_folder": "/var/www/html",
     "categories": [
         "Kühlschrank",
         "Speis",
@@ -14,7 +14,7 @@
         "kg"
     ],
     "style": "alt",
-    "bold_font": ["Helvetica", 19, "bold"],
-    "standard_font": ["Helvetica", 18],
-    "list_font": ["Helvetica", 16]
+    "bold_font": ["Helvetica", 20, "bold"],
+    "standard_font": ["Helvetica", 20],
+    "list_font": ["Helvetica", 19]
 }
