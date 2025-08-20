@@ -17,6 +17,14 @@ class GUI(tk.Tk):
         self.config = config
         self.style = ttk.Style()
 
+        self.option_add("*Font", self.config['standard_font'])
+        self.style.configure("Treeview.Heading", font=self.config['standard_font'])
+        self.style.configure("Treeview", font=self.config['list_font'])
+
+        #self.style.configure("TCombobox", font=self.config['header_font'])
+        #self.option_add('*TCombobox*Listbox*Font', self.config['header_font'])
+
+
     def make_popup(self, master, width, height, borderless=False):
 
         master_x = master.winfo_x()
@@ -41,7 +49,7 @@ class GUI(tk.Tk):
     def show_header(self, **kwargs):
         canvas = tk.Canvas(self, height=30)
         canvas.create_text(0, 0, text="K A S M A S", font=self.config['bold_font'], anchor='nw')
-        canvas.create_text(150, 5, text="Inventory system", font=self.config['header_font'], anchor='nw')
+        canvas.create_text(150, 5, text="Inventory system", anchor='nw')
         canvas.grid(**kwargs)
 
     def activate_scanner(self):
@@ -92,7 +100,7 @@ class GUI(tk.Tk):
         popup = self.make_popup(self, width=200, height=200)
 
         no_exp_date = tk.BooleanVar()
-        no_date_checkbox = tk.Checkbutton(popup, text='no expiration date', variable=no_exp_date, font=self.config['header_font'])
+        no_date_checkbox = tk.Checkbutton(popup, text='no expiration date', variable=no_exp_date)
         no_date_checkbox.grid(row=0, column=0, columnspan=5)
 
         date = datetime.datetime.now()
@@ -101,11 +109,11 @@ class GUI(tk.Tk):
         years = tk.StringVar(value=get_dateval(date, '%Y'))
 
         def add_date_modifier(type, var, column):
-            increment_button = tk.Button(popup, text="▲", command=lambda: update_date(relativedelta(**{type: +1})), font=self.config['header_font'])
+            increment_button = tk.Button(popup, text="▲", command=lambda: update_date(relativedelta(**{type: +1})))
             increment_button.grid(row=1, column=column, sticky="EWNS")
             label = tk.Label(popup, textvariable=var, font=self.config['bold_font'])
             label.grid(row=2, column=column)
-            decrement_button = tk.Button(popup, text="▼", command=lambda: update_date(relativedelta(**{type: -1})), font=self.config['header_font'])
+            decrement_button = tk.Button(popup, text="▼", command=lambda: update_date(relativedelta(**{type: -1})))
             decrement_button.grid(row=3, column=column, sticky="EWNS")
             if type != "years":
                 dot = tk.Label(popup, text=".", font=self.config['bold_font'])
@@ -115,9 +123,9 @@ class GUI(tk.Tk):
         add_date_modifier("months", months, 2)
         add_date_modifier("years", years, 4)
 
-        ok_button = tk.Button(popup, text='OK', command=on_ok, font=self.config['header_font'])
+        ok_button = tk.Button(popup, text='OK', command=on_ok,)
         ok_button.grid(row=4, column=0, columnspan=3, pady=5, padx=5, sticky='NESW')
-        cancel_button = tk.Button(popup, text='cancel', command=on_cancel, font=self.config['header_font'])
+        cancel_button = tk.Button(popup, text='cancel', command=on_cancel)
         cancel_button.grid(row=4, column=3, columnspan=2, pady=5, padx=5, sticky='NESW')
 
     def add_to_database_popup(self, code):
@@ -133,7 +141,7 @@ class GUI(tk.Tk):
         def on_cancel():
             popup.destroy()
 
-        popup = self.make_popup(self, width=500, height=200)
+        popup = self.make_popup(self, width=700, height=200)
 
         padding = 5
 
@@ -151,7 +159,7 @@ class GUI(tk.Tk):
         quantity_label.grid(row=0, column=2, padx=padding, pady=padding)
         quantity_entry.grid(row=0, column=3, padx=padding, pady=padding)
 
-        unit = ttk.Combobox(popup, values=self.config["units"], width=6)
+        unit = ttk.Combobox(popup, values=self.config["units"], width=6, style='TCombobox')
         unit.current(0)
         unit.grid(row=0, column=4, padx=padding, pady=padding)
 
@@ -223,13 +231,14 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = self.make_popup(self, width=200, height=300)
+        padding = 5
 
         add_button = tk.Button(popup, text='Add', command=on_add)
-        add_button.grid(row=0, column=0)
+        add_button.grid(row=0, column=0, sticky='NESW', padx=padding, pady=padding)
         remove_button = tk.Button(popup, text='remove', command=on_remove)
-        remove_button.grid(row=0, column=1)
+        remove_button.grid(row=1, column=0, sticky='NESW', padx=padding, pady=padding)
         modify_button = tk.Button(popup, text='modify', command=on_modify)
-        modify_button.grid(row=0, column=2)
+        modify_button.grid(row=2, column=0, sticky='NESW', padx=padding, pady=padding)
 
     def handle_barcode(self, code):
         #functiuon to call different functions depending if barcode is in register or not
@@ -254,9 +263,6 @@ class GUI(tk.Tk):
             print('scanned item not in database')
 
     def make_item_table(self, rows):
-        self.style.configure("Treeview.Heading", font=self.config['header_font'])
-        self.style.configure("Treeview", font=self.config['list_font'])
-
         self.tree = ttk.Treeview(self, columns=('name', 'amount', 'exp. date'), show='headings', height=rows)
 
         self.tree.heading('name', text='Item', command=self.namesort)
