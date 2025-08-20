@@ -40,6 +40,8 @@ def onscreen_keyboard(master, display_ref, entry):
     kb = tk.Toplevel(master)
     kb.geometry(f'{width}x{height}+{x}+{y}')
     kb.update_idletasks()
+    kb.transient(master)
+    kb.grab_set()
 
     shift_on = tk.BooleanVar(value=False)
 
@@ -73,11 +75,16 @@ def onscreen_keyboard(master, display_ref, entry):
         update_shift()
         update_keys()
 
+    def make_insert(c):
+        return lambda: insert_char(c)
+
     def update_keys():
         for r, row in enumerate(keys):
             for c, char in enumerate(row):
                 char = upper(char)
-                key = tk.Button(key_frame, text=char, width=3, command=lambda ch=char: insert_char(ch), font=font)
+                key = tk.Button(key_frame, text=char, width=3, command=make_insert(char), font=font)
+                #key = tk.Button(key_frame, text=char, width=3, font=font)
+                #key.bind('<ButtonRelease-1>', lambda e, ch=char: insert_char(ch))
                 key.grid(row=r, column=c, sticky='NESW')
 
     def delete_char():
@@ -101,11 +108,13 @@ def onscreen_keyboard(master, display_ref, entry):
 
     key_frame.pack(expand=True)
 
-    def click_outside(event):
-        if kb is not None and str(event.widget).startswith(str(kb)):
-            return
+    def close_on_focus_out(event):
+        # Check if focus is now inside the keyboard or entry
+        if not (kb.focus_displayof() is kb or kb.focus_displayof() is entry):
+            kb.destroy()
 
-        kb.destroy()
-        master.unbind_all('<Button-1>')
+    # Bind focus out on keyboard window
+    kb.bind('<FocusOut>', close_on_focus_out)
 
-    binding = master.bind_all('<Button-1>', click_outside, add='+')
+    # Optional: also bind on entry so clicking away from entry triggers closing
+    entry.bind('<FocusOut>', close_on_focus_out)
