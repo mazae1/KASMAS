@@ -44,7 +44,7 @@ class GUI(tk.Tk):
         master_height = master.winfo_height()
 
         x = master_x + (master_width - width) // 2
-        y = master_y + (master_height - height) // 4
+        y = master_y + (master_height - height) // 5
 
         popup = tk.Toplevel(master)
         if borderless:
@@ -172,7 +172,7 @@ class GUI(tk.Tk):
         def on_cancel():
             popup.destroy()
 
-        popup = self.make_popup(self, width=800, height=200)
+        popup = self.make_popup(self, width=800, height=230)
         frame = tk.Frame(popup)
 
         padding = 5

@@ -84,9 +84,6 @@ def onscreen_keyboard(master, display_ref, entry):
         inside = entry.get()
         if inside:
             entry.delete(len(inside)-1, tk.END)
-        #pos = entry.index("insert")
-        #if pos > 0:
-            #entry.delete(pos-1)
 
     update_keys()
 
@@ -105,7 +102,7 @@ def onscreen_keyboard(master, display_ref, entry):
     key_frame.pack(expand=True)
 
     def click_outside(event):
-        if event.widget not in (entry, kb):
+        if event.widget not in (entry, kb) and not str(event.widget).startswith(str(kb)):
             kb.destroy()
             master.unbind('<Button-1>', binding)
 
