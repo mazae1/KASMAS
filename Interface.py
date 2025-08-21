@@ -108,6 +108,8 @@ class GUI(tk.Tk):
                 item_dict['exp_date'] = None
             else:
                 item_dict['exp_date'] = date
+
+            item_dict['quantity'] = qty.get()
             
             self.storage.add_item(inv.Item.from_dict(item_dict))
             popup.destroy()
@@ -134,7 +136,7 @@ class GUI(tk.Tk):
 
         no_exp_date = tk.BooleanVar()
         no_date_checkbox = tk.Checkbutton(frame, text='no expiration date', variable=no_exp_date)
-        no_date_checkbox.grid(row=0, column=0, columnspan=5)
+        no_date_checkbox.grid(row=0, column=0, columnspan=2)
 
         date = datetime.datetime.now()
         days = tk.StringVar(value=get_dateval(date, '%d'))
@@ -142,35 +144,38 @@ class GUI(tk.Tk):
         years = tk.StringVar(value=get_dateval(date, '%Y'))
         qty = tk.DoubleVar(value=item_dict['quantity'])
 
+        dateframe = tk.Frame(frame)
         def add_date_modifier(type, var, column):
-            increment_button = tk.Button(frame, text="▲", command=lambda: update_date(relativedelta(**{type: +1})))
-            increment_button.grid(row=1, column=column, sticky="EWNS")
-            label = tk.Label(frame, textvariable=var, font=self.config['bold_font'])
-            label.grid(row=2, column=column)
-            decrement_button = tk.Button(frame, text="▼", command=lambda: update_date(relativedelta(**{type: -1})))
-            decrement_button.grid(row=3, column=column, sticky="EWNS")
+            increment_button = tk.Button(dateframe, text="▲", command=lambda: update_date(relativedelta(**{type: +1})))
+            increment_button.grid(row=0, column=column, sticky="EWNS")
+            label = tk.Label(dateframe, textvariable=var, font=self.config['bold_font'])
+            label.grid(row=1, column=column)
+            decrement_button = tk.Button(dateframe, text="▼", command=lambda: update_date(relativedelta(**{type: -1})))
+            decrement_button.grid(row=2, column=column, sticky="EWNS")
             if type != "years":
-                dot = tk.Label(frame, text=".", font=self.config['bold_font'])
-                dot.grid(row=2, column=column+1)
+                dot = tk.Label(dateframe, text=".", font=self.config['bold_font'])
+                dot.grid(row=1, column=column+1)
+        dateframe.grid(row=1, column=0, columnspan=2)
 
         add_date_modifier("days", days, 0)
         add_date_modifier("months", months, 2)
         add_date_modifier("years", years, 4)
 
+        vldcmd = (self.register(validate_number), '%P')
         qty_frame = tk.Frame(frame)
         qty_label = tk.Label(qty_frame, text='quantity:')
-        qty_entry = tk.Entry(qty_frame, textvariable=qty)
+        qty_entry = tk.Entry(qty_frame, textvariable=qty, validate='key', validatecommand=vldcmd)
         qty_label.grid(row=0, column=0, padx=5, pady=5)
         qty_entry.grid(row=0, column=1, padx=5, pady=5)
-        qty_frame.grid(row=4, column=0, columnspan=5)
+        qty_frame.grid(row=2, column=0, columnspan=2)
 
         ok_button = tk.Button(frame, text='OK', command=on_ok,)
-        ok_button.grid(row=5, column=0, columnspan=3, pady=5, padx=5, sticky='NESW')
+        ok_button.grid(row=3, column=0, pady=5, padx=5, sticky='NESW')
         cancel_button = tk.Button(frame, text='cancel', command=on_cancel)
-        cancel_button.grid(row=5, column=3, columnspan=2, pady=5, padx=5, sticky='NESW')
+        cancel_button.grid(row=3, column=1, pady=5, padx=5, sticky='NESW')
 
         kb = onscreen_keyboard(frame, [qty_entry])
-        kb.grid(row=6, columnspan=6, padx=5, pady=5)
+        kb.grid(row=6, columnspan=2, padx=5, pady=5)
 
         frame.pack(expand=True)
 
@@ -197,6 +202,7 @@ class GUI(tk.Tk):
             popup.destroy()
 
         popup = self.make_popup(self, width=800, height=270, fullscreen=True)
+        popup.title = code
         frame = tk.Frame(popup)
 
         padding = 5
@@ -275,12 +281,15 @@ class GUI(tk.Tk):
                 selected_item['val'] = self.storage.get_item_from_uid(uid)
                 popup.destroy()
 
-        popup=self.make_popup(master, width=400, height=600)
+        popup=self.make_popup(master, width=400, height=600, fullscreen=True)
 
-        tree = ttk.Treeview(popup, columns=('name', 'exp_date'), show='headings')
+        label = tk.Label(popup, text='Select Item', font=('Helvetica', 25))
+        label.pack(side='top', expand=True)
+
+        tree = ttk.Treeview(popup, columns=('name', 'exp_date'), show='headings', height=15)
         tree.heading('name', text='Item')
         tree.heading('exp_date', text='expiration date')
-        tree.pack()
+        tree.pack(expand=True)
 
         for item in items:
             tree.insert('', 0, iid=item.uid, values=(item.name, item.get_exp_date()))
@@ -288,7 +297,7 @@ class GUI(tk.Tk):
         tree.bind('<Button-1>', on_click)
 
         popup.wait_window()
-
+        popup.destroy()
         return selected_item['val']
 
     def options_menu(self, code):
@@ -312,7 +321,10 @@ class GUI(tk.Tk):
             self.modify_menu(selected_item)
             popup.destroy()
 
-        popup = self.make_popup(self, width=200, height=300)
+        def on_cancel():
+            popup.destroy()
+
+        popup = self.make_popup(self, width=200, height=250, yc=0)
         frame = tk.Frame(popup)
         padding = 5
 
@@ -322,6 +334,8 @@ class GUI(tk.Tk):
         remove_button.grid(row=1, column=0, sticky='NESW', padx=padding, pady=padding)
         modify_button = tk.Button(frame, text='modify', command=on_modify)
         modify_button.grid(row=2, column=0, sticky='NESW', padx=padding, pady=padding)
+        cancel_button = tk.Button(frame, text='cancel', command=on_cancel)
+        cancel_button.grid(row=3, column=0, sticky='NESW', padx=padding, pady=padding)
 
         frame.pack(expand=True)
 
@@ -348,7 +362,8 @@ class GUI(tk.Tk):
             print('scanned item not in database')
 
     def make_item_table(self, rows):
-        self.tree = ttk.Treeview(self, columns=('name', 'quantity', 'unit', 'exp. date', 'brand'), show='headings', height=rows)
+        self.treeframe = tk.Frame(self)
+        self.tree = ttk.Treeview(self.treeframe, columns=('name', 'quantity', 'unit', 'exp. date', 'brand'), show='headings', height=rows)
 
         self.tree.heading('name', text='Item', command=self.namesort)
         self.tree.heading('quantity', text='amnt', command=self.amountsort)
@@ -367,8 +382,12 @@ class GUI(tk.Tk):
 
         self.tree.bind('<Button-1>', self.on_press)
 
+        self.scrollbar = tk.Scrollbar(self.treeframe, orient='vertical', command = self.tree.yview, width=20)
+
     def show_item_table(self, **kwargs):
-        self.tree.grid(**kwargs)
+        self.tree.pack(side='left', fill='both', expand=True)
+        self.scrollbar.pack(side='right', fill='y')
+        self.treeframe.grid(**kwargs)
 
     def refresh_table(self):
         self.tree.delete(*self.tree.get_children())
