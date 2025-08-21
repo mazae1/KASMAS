@@ -26,26 +26,20 @@ shift_map = {
 
 font = ('Helvetica', 15)
 
-def onscreen_keyboard(master, display_ref, entry):
-    master_x = display_ref.winfo_x()
-    master_y = display_ref.winfo_y()
-    master_width = display_ref.winfo_width()
-    master_height = display_ref.winfo_height()
+def onscreen_keyboard(master, entries, custom_func=None, custom_txt=''):
 
-    width = master_width
-    height = 200
-    x = master_x
-    y = master_y + master_height - height
-
-    kb = tk.Toplevel(master)
-    kb.geometry(f'{width}x{height}+{x}+{y}')
-    kb.update_idletasks()
-    kb.transient(master)
-    kb.grab_set()
+    kb = tk.Frame(master)
 
     shift_on = tk.BooleanVar(value=False)
+    active_entry = [None]
 
     key_frame = tk.Frame(kb)
+
+    for e in entries:
+        e.bind("<FocusIn>", lambda event, lst=active_entry, entry=e: lst.__setitem__(0, entry))
+
+    for e in entries:
+        e.bind("<FocusOut>", lambda event: active_entry.__setitem__(0, None) )
 
     def upper(c):
         if shift_on.get():
@@ -56,6 +50,9 @@ def onscreen_keyboard(master, display_ref, entry):
         else: return c
 
     def insert_char(c):
+        entry = active_entry[0]
+        if not entry:
+            return
         if shift_on.get():
             entry.insert(tk.END, c.upper())
             shift_on.set(False)
@@ -83,14 +80,18 @@ def onscreen_keyboard(master, display_ref, entry):
             for c, char in enumerate(row):
                 char = upper(char)
                 key = tk.Button(key_frame, text=char, width=3, command=make_insert(char), font=font)
-                #key = tk.Button(key_frame, text=char, width=3, font=font)
-                #key.bind('<ButtonRelease-1>', lambda e, ch=char: insert_char(ch))
                 key.grid(row=r, column=c, sticky='NESW')
 
     def delete_char():
+        entry = active_entry[0]
+        if not entry:
+            return
         inside = entry.get()
         if inside:
             entry.delete(len(inside)-1, tk.END)
+
+    key_frame = tk.Frame(kb)
+    key_frame.pack(expand=True)
 
     update_keys()
 
@@ -103,18 +104,9 @@ def onscreen_keyboard(master, display_ref, entry):
     backspace = tk.Button(key_frame, text='<--', command=delete_char, font=font)
     backspace.grid(row=4, column=8, columnspan=2, sticky='EW')
 
-    close_btn = tk.Button(key_frame, text='close', command=kb.destroy, font=font)
-    close_btn.grid(row=3, column=10, rowspan=2, sticky="NESW")
+    custom_button = tk.Button(key_frame, text=custom_txt, command=custom_func, font=font)
+    custom_button.grid(row=3, column=10, rowspan=2, sticky="NESW")
 
     key_frame.pack(expand=True)
 
-    def close_on_focus_out(event):
-        # Check if focus is now inside the keyboard or entry
-        if not (kb.focus_displayof() is kb or kb.focus_displayof() is entry):
-            kb.destroy()
-
-    # Bind focus out on keyboard window
-    kb.bind('<FocusOut>', close_on_focus_out)
-
-    # Optional: also bind on entry so clicking away from entry triggers closing
-    entry.bind('<FocusOut>', close_on_focus_out)
+    return kb

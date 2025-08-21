@@ -36,23 +36,36 @@ class GUI(tk.Tk):
             print(f'{self.storage.storagelog} could not be found: {e}')
 
 
-    def make_popup(self, master, width, height, borderless=False):
+    def make_popup(self, master, width, height, xc=None, yc=None, fullscreen=False):
 
         master_x = master.winfo_x()
         master_y = master.winfo_y()
         master_width = master.winfo_width()
         master_height = master.winfo_height()
 
-        x = master_x + (master_width - width) // 2
-        y = master_y + (master_height - height) // 5
+        x = master_x
+        y = master_y
+
+        if xc is None:
+            x += (master_width - width) // 2
+        else:
+            x += xc 
+
+        if yc is None:
+            y += (master_height - height) // 2
+        else:
+            y = yc 
 
         popup = tk.Toplevel(master)
-        if borderless:
-            popup.overrideredirect(True)
-        popup.geometry(f'{width}x{height}+{x}+{y}')
+
         popup.update_idletasks()
         popup.transient(master)
         popup.grab_set()
+
+        if fullscreen:
+            popup.attributes("-fullscreen", True)
+        else:
+            popup.geometry(f'{width}x{height}+{x}+{y}')
 
         return popup
 
@@ -172,7 +185,7 @@ class GUI(tk.Tk):
         def on_cancel():
             popup.destroy()
 
-        popup = self.make_popup(self, width=800, height=230)
+        popup = self.make_popup(self, width=800, height=270, fullscreen=True)
         frame = tk.Frame(popup)
 
         padding = 5
@@ -184,32 +197,33 @@ class GUI(tk.Tk):
 
         name_label = tk.Label(frame, text='Prod. name:')
         name_entry = tk.Entry(frame, textvariable=name)
-        name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, name_entry))
+        #name_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, name_entry))
         name_label.grid(row=0, column=0, padx=padding, pady=padding)
         name_entry.grid(row=0, column=1, padx=padding, pady=padding)
 
         brand_label = tk.Label(frame, text='brand:')
         brand_entry = tk.Entry(frame, textvariable=brand)
-        brand_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, brand_entry))
+        #brand_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, brand_entry))
         brand_label.grid(row=1, column=0, padx=padding, pady=padding)
         brand_entry.grid(row=1, column=1, padx=padding, pady=padding)
 
         type_label = tk.Label(frame, text='Prod. type:')
         type_entry = tk.Entry(frame, textvariable=type)
-        type_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, type_entry))
+        #type_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, type_entry))
         type_label.grid(row=2, column=0, padx=padding, pady=padding)
         type_entry.grid(row=2, column=1, padx=padding, pady=padding)
 
         qty_frame = tk.Frame(frame)
 
+        vldcmd = (self.register(validate_number), '%P')
         quantity_label = tk.Label(qty_frame, text='quantity:')
-        quantity_entry = tk.Entry(qty_frame, textvariable=quantity, width=5)
-        quantity_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, quantity_entry))
+        quantity_entry = tk.Entry(qty_frame, textvariable=quantity, width=5, validate='key', validatecommand=vldcmd)
+        #quantity_entry.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, quantity_entry))
         quantity_label.grid(row=0, column=0, padx=padding, pady=padding)
         quantity_entry.grid(row=0, column=1, padx=padding, pady=padding)
 
         unit = ttk.Combobox(qty_frame, values=self.config["units"], width=6, style='TCombobox')
-        unit.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, unit))
+        #unit.bind('<Button-1>', lambda e: onscreen_keyboard(popup, self, unit))
         unit.current(0)
         unit.grid(row=0, column=3, padx=padding, pady=padding)
 
@@ -230,7 +244,11 @@ class GUI(tk.Tk):
         cancel_button.grid(row=0, column=1, sticky='EW', padx=padding, pady=padding)
 
         ok_cancel_frame.grid(row=5, column=0, columnspan=5)
+
+        kb = onscreen_keyboard(frame, [name_entry, brand_entry, type_entry, quantity_entry])
+        kb.grid(row=6, column=0, columnspan=5)
         frame.pack(expand=True)
+
 
     def select_item_from_list(self, master, items):
 
@@ -432,3 +450,12 @@ class GUI(tk.Tk):
 
         for index, (_, iid) in enumerate(items):
             self.tree.move(iid, '', index)
+
+def validate_number(val):
+    if val == '':
+        return True
+    try:
+        float(val)
+        return True
+    except ValueError:
+        return False
