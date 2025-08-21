@@ -274,12 +274,19 @@ class GUI(tk.Tk):
         if len(items) == 1:
             return items[0]
 
+        def on_select():
+            popup.destroy()
+
+        def on_cancel():
+            selected_item['val'] = None
+            popup.destroy()
+
         def on_click(event):
             uid = tree.identify_row(event.y)
             if uid:
                 tree.selection_set(uid)
                 selected_item['val'] = self.storage.get_item_from_uid(uid)
-                popup.destroy()
+                print(selected_item['val'].exp_date)
 
         popup=self.make_popup(master, width=400, height=600, fullscreen=True)
 
@@ -291,13 +298,17 @@ class GUI(tk.Tk):
         tree.heading('exp_date', text='expiration date')
         tree.pack(expand=True)
 
+        select_button = tk.Button(popup, text='Select', command=on_select)
+        select_button.pack()
+        cancel_button = tk.Button(popup, text='Cancel', command=on_cancel)
+        cancel_button.pack()
+
         for item in items:
             tree.insert('', 0, iid=item.uid, values=(item.name, item.get_exp_date()))
 
         tree.bind('<Button-1>', on_click)
 
         popup.wait_window()
-        popup.destroy()
         return selected_item['val']
 
     def options_menu(self, code):
@@ -407,6 +418,10 @@ class GUI(tk.Tk):
             popup.tk_popup(event.x_root, event.y_root)
 
     def modify_menu(self, item):
+        if item is None:
+            print('No item selected, aborting modify action.')
+            return
+
         def update_amt_var(amt):
             new = max(round(amt_var.get() + amt, 2), 0.0)
             amt_var.set(new)
@@ -426,9 +441,7 @@ class GUI(tk.Tk):
             self.refresh_table()
             popup.destroy()
 
-        popup = tk.Toplevel(self)
-        popup.transient(self)
-        popup.grab_set()
+        popup = self.make_popup(self, 300, 200)
 
         amt_var = tk.DoubleVar(value=item.quantity)
         tk.Label(popup, text='amount = ', font=('Arial', 18)).grid(row=0, column=0, rowspan=2)
