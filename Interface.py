@@ -129,7 +129,7 @@ class GUI(tk.Tk):
 
         item_dict = self.database.get_item_from_barcode(code)
 
-        popup = self.make_popup(self, width=250, height=250)
+        popup = self.make_popup(self, width=250, height=250, fullscreen=True)
         frame = tk.Frame(popup)
 
         no_exp_date = tk.BooleanVar()
@@ -140,6 +140,7 @@ class GUI(tk.Tk):
         days = tk.StringVar(value=get_dateval(date, '%d'))
         months = tk.StringVar(value=get_dateval(date, '%m'))
         years = tk.StringVar(value=get_dateval(date, '%Y'))
+        qty = tk.DoubleVar(value=item_dict['quantity'])
 
         def add_date_modifier(type, var, column):
             increment_button = tk.Button(frame, text="▲", command=lambda: update_date(relativedelta(**{type: +1})))
@@ -156,10 +157,20 @@ class GUI(tk.Tk):
         add_date_modifier("months", months, 2)
         add_date_modifier("years", years, 4)
 
+        qty_frame = tk.Frame(frame)
+        qty_label = tk.Label(qty_frame, text='quantity:')
+        qty_entry = tk.Entry(qty_frame, textvariable=qty)
+        qty_label.grid(row=0, column=0, padx=5, pady=5)
+        qty_entry.grid(row=0, column=1, padx=5, pady=5)
+        qty_frame.grid(row=4, column=0, columnspan=5)
+
         ok_button = tk.Button(frame, text='OK', command=on_ok,)
-        ok_button.grid(row=4, column=0, columnspan=3, pady=5, padx=5, sticky='NESW')
+        ok_button.grid(row=5, column=0, columnspan=3, pady=5, padx=5, sticky='NESW')
         cancel_button = tk.Button(frame, text='cancel', command=on_cancel)
-        cancel_button.grid(row=4, column=3, columnspan=2, pady=5, padx=5, sticky='NESW')
+        cancel_button.grid(row=5, column=3, columnspan=2, pady=5, padx=5, sticky='NESW')
+
+        kb = onscreen_keyboard(frame, [qty_entry])
+        kb.grid(row=6, columnspan=6, padx=5, pady=5)
 
         frame.pack(expand=True)
 
@@ -352,7 +363,7 @@ class GUI(tk.Tk):
         self.tree.column('brand', width=150)
 
         for item in self.storage:
-            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit if item.unit else '', item.get_exp_date()))
+            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit if item.unit else '', item.get_exp_date(), item.brand))
 
         self.tree.bind('<Button-1>', self.on_press)
 
@@ -362,7 +373,7 @@ class GUI(tk.Tk):
     def refresh_table(self):
         self.tree.delete(*self.tree.get_children())
         for item in self.storage:
-            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit, item.get_exp_date()))
+            self.tree.insert('', 0, iid=item.uid, values=(item.name, item.quantity, item.unit if item.unit else '', item.get_exp_date(), item.brand))
 
     def on_press(self, event):
         uid = self.tree.identify_row(event.y)

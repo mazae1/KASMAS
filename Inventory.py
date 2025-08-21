@@ -205,12 +205,3 @@ class Database:
                 return item_dict
         
         raise ValueError(f'{code} not found in database')
-
-if __name__ == '__main__':
-    storage = Storage()
-    milk = Item('milk', exp_date='2025-08-07')
-    print(type(milk.exp_date))
-    print(milk.get_exp_date())
-    storage.add_item(milk)
-    print(type(storage[0].exp_date))
-    print(storage[0].get_exp_date())
