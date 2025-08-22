@@ -58,14 +58,15 @@ class GUI(tk.Tk):
 
         popup = tk.Toplevel(master)
 
-        popup.update_idletasks()
         popup.transient(master)
         popup.grab_set()
 
         if fullscreen:
+            popup.update_idletasks()
             popup.attributes("-fullscreen", True)
         else:
             popup.geometry(f'{width}x{height}+{x}+{y}')
+            popup.update_idletasks()
 
         return popup
 
@@ -286,7 +287,6 @@ class GUI(tk.Tk):
             if uid:
                 tree.selection_set(uid)
                 selected_item['val'] = self.storage.get_item_from_uid(uid)
-                print(selected_item['val'].exp_date)
 
         popup=self.make_popup(master, width=400, height=600, fullscreen=True)
 
