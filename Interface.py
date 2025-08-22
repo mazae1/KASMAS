@@ -428,8 +428,8 @@ class GUI(tk.Tk):
 
         def add_modify_button(amt, row, col, color = '#FFFFFF'):
             sign = '+' if amt > 0 else ''
-            btn = tk.Button(popup, text=sign+str(amt), font=('Arial', 18), background=color, command=lambda:update_amt_var(amt))
-            btn.grid(row=row, column=col, sticky='EW', padx=10)
+            btn = tk.Button(popup, text=sign+str(amt), font=self.config['bold_font'], background=color, command=lambda:update_amt_var(amt))
+            btn.grid(row=row, column=col, sticky='EW', padx=10, pady=5)
 
         def on_ok():
             try:
@@ -441,20 +441,34 @@ class GUI(tk.Tk):
             self.refresh_table()
             popup.destroy()
 
-        popup = self.make_popup(self, 300, 200)
+        def on_cancel():
+            popup.destroy()
+
+        popup = self.make_popup(self, 300, 200, fullscreen=True)
+
+        vldcmd = (self.register(validate_number), '%P')
 
         amt_var = tk.DoubleVar(value=item.quantity)
-        tk.Label(popup, text='amount = ', font=('Arial', 18)).grid(row=0, column=0, rowspan=2)
-        amt_label = tk.Label(popup, textvariable=amt_var, font=('Arial', 28))
-        amt_label.grid(row=0, column=1, rowspan=2)
+        tk.Label(popup, text='amount = ').grid(row=0, column=0, rowspan=2)
+        amt_entry = tk.Entry(popup, textvariable=amt_var, validate='key', validatecommand=vldcmd)
+        amt_entry.grid(row=0, column=1, rowspan=2)
 
         add_modify_button(0.1, 0, 2, color="#B3FFA9")
         add_modify_button(1, 0, 3, color="#76FF5A")
         add_modify_button(-0.1, 1, 2, color="#EBA4A4")
         add_modify_button(-1, 1, 3, color="#FF7676")
 
-        ok_button = tk.Button(popup, text='OK', font=('Arial', 18), command=on_ok)
-        ok_button.grid(row=4, column=0, columnspan=3, sticky='EW')
+        btn_frame = tk.Frame(popup)
+        ok_button = tk.Button(btn_frame, text='OK', command=on_ok)
+        #ok_button.grid(row=0, column=0, padx=5, pady=5, sticky='EW')
+        ok_button.pack(side='left', expand=True, padx=5, pady=5)
+        cancel_btn = tk.Button(btn_frame, text='Cancel', command=on_cancel)
+        #cancel_btn.grid(row=0, column=1, padx=5, pady=5, sticky='EW')
+        cancel_btn.pack(side='right', expand=True, padx=5, pady=5)
+        btn_frame.grid(row=4, column=0, columnspan=4)
+
+        kb = onscreen_keyboard(popup, entries=[amt_entry])
+        kb.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky='S')
 
     def remove_menu(self, item):
         answer = messagebox.askokcancel('Delete item?', 'Are you sure you want to delete the item from storage?')
